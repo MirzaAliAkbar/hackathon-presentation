@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How to Never Lose a Hackathon</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   THEME
+   =========================================== */
+:root {
+  --bg: #0d0f14;
+  --bg-2: #151922;
+  --fg: #f4f5f0;
+  --muted: #9aa3b2;
+  --accent: #c6ff3d;
+  --accent-dim: rgba(198, 255, 61, 0.12);
+  --accent-glow: rgba(198, 255, 61, 0.35);
+  --line: rgba(244, 245, 240, 0.08);
+  --font-display: "Archivo Black", sans-serif;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --title-size: clamp(2.4rem, 7vw, 5.5rem);
+  --h2-size: clamp(1.6rem, 4vw, 3rem);
+  --h3-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  --body-size: clamp(0.85rem, 1.4vw, 1.15rem);
+  --small-size: clamp(0.7rem, 1vw, 0.85rem);
+
+  --slide-padding: clamp(1.5rem, 4vw, 4rem);
+  --content-gap: clamp(1rem, 2.5vw, 2rem);
+  --element-gap: clamp(0.4rem, 1vw, 0.9rem);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-normal: 0.6s;
+}
+
+/* ===========================================
+   VIEWPORT FITTING: MANDATORY BASE
+   =========================================== */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+}
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--bg);
+}
+.slide-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: 100%;
+  overflow: hidden;
+  padding: var(--slide-padding);
+  width: 100%;
+}
+
+.card, .container, .content-box {
+  max-width: min(90vw, 1100px);
+  max-height: min(80vh, 720px);
+}
+.bullet-list, .feature-list {
+  gap: var(--element-gap);
+  display: flex;
+  flex-direction: column;
+}
+.bullet-list li, .feature-list li {
+  font-size: var(--body-size);
+  line-height: 1.45;
+}
+
+img, .image-container {
+  max-width: 100%;
+  max-height: min(50vh, 400px);
+  object-fit: contain;
+}
+
+@media (max-height: 700px) {
+  :root {
+    --slide-padding: clamp(1rem, 3vw, 2rem);
+    --content-gap: clamp(0.7rem, 1.5vw, 1.2rem);
+    --title-size: clamp(1.8rem, 5.5vw, 3.5rem);
+    --h2-size: clamp(1.3rem, 3.5vw, 2.4rem);
+  }
+}
+@media (max-height: 600px) {
+  :root {
+    --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem);
+    --content-gap: clamp(0.5rem, 1.2vw, 0.9rem);
+    --title-size: clamp(1.5rem, 5vw, 2.6rem);
+    --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+  }
+  .nav-dots, .keyboard-hint, .decorative { display: none; }
+}
+@media (max-height: 500px) {
+  :root {
+    --slide-padding: clamp(0.5rem, 2vw, 1rem);
+    --title-size: clamp(1.2rem, 4vw, 2rem);
+    --h2-size: clamp(1rem, 2.8vw, 1.6rem);
+    --body-size: clamp(0.65rem, 1vw, 0.85rem);
+  }
+}
+@media (max-width: 600px) {
+  :root { --title-size: clamp(1.6rem, 8vw, 3rem); }
+  .grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ===========================================
+   GLOBAL CHROME
+   =========================================== */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--accent);
+  z-index: 100;
+  transition: width 0.15s linear;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.nav-dots {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+}
+.nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+  border: 1px solid rgba(244,245,240,0.25);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out-expo);
+}
+.nav-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  transform: scale(1.3);
+}
+.keyboard-hint {
+  position: fixed;
+  bottom: clamp(0.5rem, 1.5vw, 1rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--muted);
+  z-index: 100;
+  opacity: 0.7;
+}
+.slide-number {
+  position: absolute;
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  right: clamp(1rem, 3vw, 2rem);
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ===========================================
+   REVEAL ANIMATIONS
+   =========================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--duration-normal) var(--ease-out-expo),
+              transform var(--duration-normal) var(--ease-out-expo);
+}
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+.reveal:nth-child(1) { transition-delay: 0.05s; }
+.reveal:nth-child(2) { transition-delay: 0.12s; }
+.reveal:nth-child(3) { transition-delay: 0.19s; }
+.reveal:nth-child(4) { transition-delay: 0.26s; }
+.reveal:nth-child(5) { transition-delay: 0.33s; }
+
+/* ===========================================
+   BACKGROUNDS / DECOR
+   =========================================== */
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  pointer-events: none;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.orb.lime { background: var(--accent); }
+.orb.cyan { background: #5eead4; }
+
+/* ===========================================
+   TYPOGRAPHY
+   =========================================== */
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.05; letter-spacing: -0.02em; }
+h1 { font-size: var(--title-size); }
+h2 { font-size: var(--h2-size); }
+h3 { font-size: var(--h3-size); }
+p, li { font-family: var(--font-body); }
+.mono { font-family: var(--font-mono); }
+.accent { color: var(--accent); }
+.muted { color: var(--muted); }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--element-gap);
+}
+
+/* ===========================================
+   SLIDE LAYOUTS
+   =========================================== */
+.container { margin: 0 auto; width: 100%; }
+.maxw { max-width: min(90vw, 1080px); }
+.stack { display: flex; flex-direction: column; gap: var(--content-gap); }
+.row { display: flex; flex-wrap: wrap; gap: var(--content-gap); align-items: center; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--content-gap); }
+
+.card-box {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+.card-box .num {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: var(--small-size);
+}
+.card-box h3 { font-size: var(--h3-size); }
+.card-box p { color: var(--muted); font-size: var(--body-size); line-height: 1.4; }
+
+.bullet-list { list-style: none; }
+.bullet-list li {
+  display: flex; gap: 0.75rem; align-items: flex-start;
+}
+.bullet-list li::before {
+  content: "▸";
+  color: var(--accent);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+.bullet-list li strong { color: var(--fg); }
+
+.rule-num {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: var(--small-size);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.25rem;
+}
+
+/* title slide */
+.title-slide .big {
+  font-size: var(--title-size);
+  line-height: 0.95;
+}
+.title-slide .sub {
+  font-size: var(--h3-size);
+  color: var(--muted);
+  max-width: 60ch;
+}
+.title-slide .tag {
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+/* split layout */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--content-gap);
+  align-items: center;
+}
+@media (max-width: 768px) { .split { grid-template-columns: 1fr; } }
+
+.quote {
+  font-family: var(--font-display);
+  font-size: var(--h2-size);
+  line-height: 1.1;
+}
+.quote::before { content: "“"; color: var(--accent); }
+.quote::after { content: "”"; color: var(--accent); }
+
+.pill {
+  display: inline-block;
+  padding: 0.35em 0.9em;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  letter-spacing: 0.08em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+<div class="keyboard-hint">← → or scroll · space to advance</div>
+
+<!-- ============ SLIDE 1: TITLE ============ -->
+<section class="slide title-slide" data-index="0">
+  <div class="bg-grid"></div>
+  <div class="orb lime decorative" style="width:40vw;height:40vw;top:-10vw;right:-10vw;"></div>
+  <div class="orb cyan decorative" style="width:25vw;height:25vw;bottom:-5vw;left:-5vw;"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="tag reveal">PLAYBOOK · REPEAT WINNERS</span>
+      <h1 class="big reveal">Never Lose<br><span class="accent">a Hackathon.</span></h1>
+      <p class="sub reveal">The playbook repeat winners actually use. Fifteen rules, zero fluff — from the judging table, the mentors, and the teams who keep showing up on the podium.</p>
+      <div class="row reveal" style="margin-top: var(--element-gap);">
+        <span class="pill">15 slides</span>
+        <span class="pill">~5 min</span>
+        <span class="pill">built from 36+ wins</span>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">01 / 15</span>
+</section>
+
+<!-- ============ SLIDE 2: UNCOMFORTABLE TRUTH ============ -->
+<section class="slide" data-index="1">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">THE UNCOMFORTABLE TRUTH</span>
+      <h2 class="reveal">Hackathons aren't won by code.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>No judge spends more than <strong>~30 seconds</strong> looking at your code. They score what they <strong>see on screen</strong>.</span></li>
+        <li><span>The demo is the product. A polished demo of <strong>one feature</strong> beats a broken demo of five.</span></li>
+        <li><span>Your first real customer is the judge. Build for <strong>them</strong>, not for the leaderboard of sponsor tracks.</span></li>
+        <li><span>Using AI is normal now. The edge isn't the tool — it's the <strong>problem you chose</strong>.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">02 / 15</span>
+</section>
+
+<!-- ============ SLIDE 3: WHAT JUDGES SCORE ============ -->
+<section class="slide" data-index="2">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">WHAT JUDGES ACTUALLY SCORE</span>
+      <h2 class="reveal">Four of five criteria aren't about clever code.</h2>
+      <div class="grid reveal">
+        <div class="card-box">
+          <span class="num">01</span>
+          <h3>Code</h3>
+          <p>Does it work? Is it honest about what's mocked?</p>
+        </div>
+        <div class="card-box">
+          <span class="num">02</span>
+          <h3>UI / UX</h3>
+          <p>Can a judge use it without you explaining it?</p>
+        </div>
+        <div class="card-box">
+          <span class="num">03</span>
+          <h3>Creativity</h3>
+          <p>One memorable touch beats five average features.</p>
+        </div>
+        <div class="card-box">
+          <span class="num">04</span>
+          <h3>Teamwork</h3>
+          <p>Everyone contributed. Everyone can explain it.</p>
+        </div>
+        <div class="card-box">
+          <span class="num">05</span>
+          <h3>Presentation</h3>
+          <p>The story, the demo, the answer to Q&A.</p>
+        </div>
+      </div>
+      <p class="muted reveal" style="font-size: var(--small-size);">Weights surprise teams who feel they bombed. Submit every time.</p>
+    </div>
+  </div>
+  <span class="slide-number">03 / 15</span>
+</section>
+
+<!-- ============ SLIDE 4: SCOPE ============ -->
+<section class="slide" data-index="3">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 01 · SCOPE</span>
+      <h2 class="reveal">Scope down. Then down again.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Your initial idea is <strong>always too big</strong>. Cut it in half. Then cut it in half again.</span></li>
+        <li><span>One feature that works end-to-end beats five that half-work. Every time.</span></li>
+        <li><span>If a feature isn't in the <strong>demo path</strong>, it's a candidate to cut. Hardcode or stub it.</span></li>
+        <li><span>Over-scoping is the #1 reason teams don't place. The idea feels achievable at hour 2, impossible at hour 30.</span></li>
+      </ul>
+      <div class="reveal" style="margin-top: var(--element-gap);">
+        <span class="pill">60 / 30 / 10 · plan · build · polish</span>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">04 / 15</span>
+</section>
+
+<!-- ============ SLIDE 5: DEMO FIRST ============ -->
+<section class="slide" data-index="4">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 02 · DEMO-FIRST</span>
+      <h2 class="reveal">Build the demo first. Features second.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Work backwards from the <strong>5-minute demo</strong>. What must appear on screen? Build only that.</span></li>
+        <li><span>Define the <strong>happy path</strong>: the exact sequence you'll walk through, tested and known not to break.</span></li>
+        <li><span>Get a working skeleton by the <strong>first quarter</strong> — hour 6 of 24, hour 12 of 48. Ugly is fine.</span></li>
+        <li><span>A skeleton that runs end-to-end exposes integration bugs while there's still time to fix them.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">05 / 15</span>
+</section>
+
+<!-- ============ SLIDE 6: DEMO SCRIPT ============ -->
+<section class="slide" data-index="5">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 03 · SCRIPT</span>
+      <h2 class="reveal">Write the demo script before the meaningful code.</h2>
+      <div class="grid reveal">
+        <div class="card-box"><span class="num">1</span><h3>Problem</h3><p>One sentence. The pain, in plain language, around a specific person.</p></div>
+        <div class="card-box"><span class="num">2</span><h3>Before state</h3><p>What someone does today — the workaround and its cost.</p></div>
+        <div class="card-box"><span class="num">3</span><h3>Trigger</h3><p>The exact action that starts the demo. Judges know what to watch for.</p></div>
+        <div class="card-box"><span class="num">4</span><h3>Aha moment</h3><p>The single thing every judge remembers after you leave.</p></div>
+        <div class="card-box"><span class="num">5</span><h3>Close</h3><p>Tie it to scale or impact in one line.</p></div>
+      </div>
+      <p class="muted reveal" style="font-size: var(--small-size);">If you can't write this script, you don't yet know what you're building. Stop and figure it out.</p>
+    </div>
+  </div>
+  <span class="slide-number">06 / 15</span>
+</section>
+
+<!-- ============ SLIDE 7: PITCH PROBLEM ============ -->
+<section class="slide" data-index="6">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 04 · PITCH</span>
+      <h2 class="reveal">Pitch the problem harder than the solution.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>The winning split is roughly <strong>30% problem / 70% solution</strong>. Most teams do 5% / 95%.</span></li>
+        <li><span>Use a <strong>specific person</strong>, not a category: "a backend dev at a Series B SaaS who spends 2 hours a week on X."</span></li>
+        <li><span>Spend 20–30 seconds validating the problem. Don't assume judges will just get it.</span></li>
+        <li><span>Tell a story, then show the app. Don't get lost in the technical weeds.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">07 / 15</span>
+</section>
+
+<!-- ============ SLIDE 8: PERSONAL PROBLEM ============ -->
+<section class="slide" data-index="7">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 05 · IDEA</span>
+      <h2 class="reveal">Pick a problem you actually have.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Personal pain points win. You get the problem, the solution sketch, and the customer — <strong>yourself</strong>.</span></li>
+        <li><span>Colleen's trick: don't keep a list of hackathon ideas. Keep a list of <strong>things that annoy you</strong>.</span></li>
+        <li><span>Start from the theme or track, then work backwards. Judges can tell when a project wasn't built for them.</span></li>
+        <li><span>Don't force originality. Ask "what do I wish existed that doesn't?" — then build that.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">08 / 15</span>
+</section>
+
+<!-- ============ SLIDE 9: TEAM ============ -->
+<section class="slide" data-index="8">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 06 · TEAM</span>
+      <h2 class="reveal">Two to three people. Clear roles.</h2>
+      <div class="grid reveal">
+        <div class="card-box"><span class="num">A</span><h3>Builder</h3><p>Owns the happy path end to end.</p></div>
+        <div class="card-box"><span class="num">B</span><h3>Designer</h3><p>UI, visual wow, realistic data.</p></div>
+        <div class="card-box"><span class="num">C</span><h3>Presenter</h3><p>Owns the deck from day one. Practices the pitch.</p></div>
+      </div>
+      <ul class="bullet-list reveal">
+        <li><span>One person owns the presentation <strong>from day one</strong> — not at hour 23.</span></li>
+        <li><span>Everyone must be able to <strong>explain the whole project</strong>. Judges spot the passenger.</span></li>
+        <li><span>Leave one chair open. Talk to mentors and organizers early.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">09 / 15</span>
+</section>
+
+<!-- ============ SLIDE 10: STACK ============ -->
+<section class="slide" data-index="9">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 07 · STACK</span>
+      <h2 class="reveal">Stick to what you know. Use the sponsors.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Don't learn a new framework mid-event. <strong>Speed comes from familiarity.</strong></span></li>
+        <li><span>Talk to sponsors before building. They'll tell you what's boring vs. innovative.</span></li>
+        <li><span>Load their MCP servers and skills into your agent up front — build correctly the first time.</span></li>
+        <li><span>Use coding agents liberally (~5 in parallel), but read everything they produce.</span></li>
+        <li><span>Mock data feeds and third-party APIs. <strong>Never mock the feature judges came to see.</strong></span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">10 / 15</span>
+</section>
+
+<!-- ============ SLIDE 11: LOCK ============ -->
+<section class="slide" data-index="10">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 08 · LOCK</span>
+      <h2 class="reveal">Lock the code four hours before submission.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Freeze features. Fix bugs. Rehearse. New features in the final stretch break what already shipped.</span></li>
+        <li><span>Hardcode the happy path. Mock external services. Cache responses.</span></li>
+        <li><span>Keep a backup: record the demo twice, grab screenshots as fallback.</span></li>
+        <li><span>Write the README so judges who don't see your demo can still evaluate it.</span></li>
+        <li><span>Submit at least 30 minutes early. The buzzer is when problems show up.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">11 / 15</span>
+</section>
+
+<!-- ============ SLIDE 12: POLISH ============ -->
+<section class="slide" data-index="11">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 09 · POLISH</span>
+      <h2 class="reveal">Make it look good. Make it real.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Visual wow factor is universal — judges can't assess technical depth in 3 minutes.</span></li>
+        <li><span>Use <strong>realistic data</strong>, not "Lorem ipsum." Placeholder data looks unfinished.</span></li>
+        <li><span>Check it works on a phone. Some judges will open it there.</span></li>
+        <li><span>Add one memorable touch — a sound, a surprise ending, a clever use of the theme. After the core works.</span></li>
+        <li><span>Make it usable without explanation: start screen, short instructions, buttons that look like buttons.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">12 / 15</span>
+</section>
+
+<!-- ============ SLIDE 13: HABITS ============ -->
+<section class="slide" data-index="12">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">RULE 10 · HABITS</span>
+      <h2 class="reveal">Sleep. Submit early. Ship a README.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>The team that sleeps 4–5 hours and presents with energy beats the all-nighter. Always.</span></li>
+        <li><span>Practice the demo with another team. Find where it breaks before judges do.</span></li>
+        <li><span>Keep your main branch functional. Risky features go on feature branches.</span></li>
+        <li><span>Answer Q&A honestly: "we didn't have time, but here's how we'd do it" beats bluffing.</span></li>
+        <li><span>Be honest about AI-assisted work. Disclose recycled code. Explain how you used it.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">13 / 15</span>
+</section>
+
+<!-- ============ SLIDE 14: ANTI-PATTERNS ============ -->
+<section class="slide" data-index="13">
+  <div class="bg-grid"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="rule-num reveal">ANTI-PATTERNS</span>
+      <h2 class="reveal">What losers do.</h2>
+      <ul class="bullet-list reveal">
+        <li><span>Coding right up to the buzzer with <strong>nothing left for the demo</strong>.</span></li>
+        <li><span>Five features, none working end to end.</span></li>
+        <li><span>An all-nighter and an <strong>exhausted pitch</strong>.</span></li>
+        <li><span>Mocking the core feature judges came to see.</span></li>
+        <li><span>Generic "AI for X" with no real problem and no real user.</span></li>
+        <li><span>Assuming judges will "just get it." They won't.</span></li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-number">14 / 15</span>
+</section>
+
+<!-- ============ SLIDE 15: CLOSE ============ -->
+<section class="slide title-slide" data-index="14">
+  <div class="bg-grid"></div>
+  <div class="orb lime decorative" style="width:35vw;height:35vw;bottom:-10vw;right:-8vw;"></div>
+  <div class="slide-content">
+    <div class="container maxw stack">
+      <span class="tag reveal">FINAL RULE</span>
+      <h1 class="big reveal">Visualize winning.<br><span class="accent">Work backwards.</span></h1>
+      <p class="sub reveal">Picture the demo that wins, then build toward exactly that. Every second of the pitch should earn its place.</p>
+      <blockquote class="quote reveal" style="margin-top: var(--content-gap);">Make friends. Have fun. The best projects come from teams that are genuinely excited.</blockquote>
+      <div class="row reveal" style="margin-top: var(--element-gap);">
+        <span class="pill">Read the rules first</span>
+        <span class="pill">Ship something that works</span>
+        <span class="pill">Tell the truth</span>
+      </div>
+    </div>
+  </div>
+  <span class="slide-number">15 / 15</span>
+</section>
+
+<script>
+class SlidePresentation {
+  constructor() {
+    this.slides = Array.from(document.querySelectorAll('.slide'));
+    this.current = 0;
+    this.isScrolling = false;
+    this.setupIntersectionObserver();
+    this.setupKeyboardNav();
+    this.setupTouchNav();
+    this.setupWheelNav();
+    this.setupProgressBar();
+    this.setupNavDots();
+  }
+
+  setupIntersectionObserver() {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          const idx = this.slides.indexOf(e.target);
+          if (idx !== -1) { this.current = idx; this.updateDots(); this.updateProgress(); }
+        }
+      });
+    }, { threshold: 0.5 });
+    this.slides.forEach(s => io.observe(s));
+  }
+
+  setupKeyboardNav() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault(); this.goTo(this.current + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault(); this.goTo(this.current - 1);
+      } else if (e.key === 'Home') { e.preventDefault(); this.goTo(0); }
+      else if (e.key === 'End') { e.preventDefault(); this.goTo(this.slides.length - 1); }
+    });
+  }
+
+  setupTouchNav() {
+    let startY = 0;
+    document.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      const dy = startY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 50) { dy > 0 ? this.goTo(this.current + 1) : this.goTo(this.current - 1); }
+    }, { passive: true });
+  }
+
+  setupWheelNav() {
+    let wheelTimeout;
+    document.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        e.deltaY > 0 ? this.goTo(this.current + 1) : this.goTo(this.current - 1);
+      }, 80);
+    }, { passive: false });
+  }
+
+  goTo(i) {
+    i = Math.max(0, Math.min(this.slides.length - 1, i));
+    if (i === this.current && document.querySelector('.slide.visible') ) {}
+    this.current = i;
+    this.slides[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.updateDots();
+    this.updateProgress();
+  }
+
+  setupProgressBar() {
+    this.progressBar = document.getElementById('progressBar');
+    this.updateProgress();
+  }
+  updateProgress() {
+    const pct = ((this.current + 1) / this.slides.length) * 100;
+    if (this.progressBar) this.progressBar.style.width = pct + '%';
+  }
+
+  setupNavDots() {
+    const c = document.getElementById('navDots');
+    if (!c) return;
+    c.innerHTML = '';
+    this.slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'nav-dot';
+      d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      d.addEventListener('click', () => this.goTo(i));
+      c.appendChild(d);
+    });
+    this.updateDots();
+  }
+  updateDots() {
+    const dots = document.querySelectorAll('.nav-dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i === this.current));
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => { new SlidePresentation(); });
+</script>
+</body>
+</html>
